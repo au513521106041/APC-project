@@ -1,79 +1,78 @@
 #include "apc.h"
 
-/* Easy-to-understand long multiplication for linked list big integers */
-int multiplication(Dlist **head1, Dlist **tail1,
-                   Dlist **head2, Dlist **tail2,
-                   Dlist **headR, Dlist **tailR)
+int multiplication(Dlist **head1, Dlist **tail1, Dlist **head2, Dlist **tail2, Dlist **headR, Dlist **tailR)
 {
-    // Step 1: Shortcut if either number is zero
-    if ((*head1)->data == 0 && (*head1)->next == NULL) {
-        insert_first(headR, tailR, 0);
-        print_list(*headR);
-        return SUCCESS;
-    }
-    if ((*head2)->data == 0 && (*head2)->next == NULL) {
-        insert_first(headR, tailR, 0);
-        print_list(*headR);
-        return SUCCESS;
-    }
+    // Check if either input list is empty
+    if (!head1 || !head2 || !*head1 || !*head2)
+        return FAILURE;
 
-    // Step 2: Start with an empty result
-    *headR = NULL;
-    *tailR = NULL;
+    Dlist *digitNode2 = *tail2;   // Start from the least significant digit of second number
+    int zeroPadding = 0;          // Number of zeros to append corresponding to digit position 
 
-    int shift = 0;                  // How many zeros to add for place value
-    Dlist *ptr2 = *tail2;           // Start from LSB of multiplier
+    // Initialize the result list with 0
+    insert_first(headR, tailR, 0);
 
-    // Step 3: Outer loop — each digit of multiplier
-    while (ptr2 != NULL) {
-        int d2 = ptr2->data;        // Current multiplier digit
+    // Loop over each digit of the second number
+    while (digitNode2)
+    {
+        int digit2 = digitNode2->data;
         int carry = 0;
 
-        // Partial product list
-        Dlist *pH = NULL, *pT = NULL;
+        Dlist *digitNode1 = *tail1;  // Start from the least significant digit of first number
+        Dlist *partialHead = NULL, *partialTail = NULL;  // Partial product list for this digit multiplication
 
-        // Step 3a: Add shift zeros at the END (LS side)
-        for (int i = 0; i < shift; i++) {
-            insert_last(&pH, &pT, 0);
+        // Multiply current digit of second number by all digits of first number
+        while (digitNode1)
+        {
+            int digit1 = digitNode1->data;
+            int product = digit1 * digit2 + carry;
+            carry = product / 10;
+
+            // Insert the last digit of product at the front of partial product list
+            insert_first(&partialHead, &partialTail, product % 10);
+
+            digitNode1 = digitNode1->prev;
         }
 
-        // Step 3b: Multiply with all digits of multiplicand
-        Dlist *ptr1 = *tail1;       // Start from LSB of multiplicand
-        while (ptr1 != NULL) {
-            int prod = (ptr1->data * d2) + carry;
-            int digit = prod % 10;
-            carry = prod / 10;
-
-            insert_first(&pH, &pT, digit);
-            ptr1 = ptr1->prev;
-        }
-
-        // Step 3c: Leftover carry
+        // If there's remaining carry after multiplication, insert it too
         if (carry > 0)
-            insert_first(&pH, &pT, carry);
+            insert_first(&partialHead, &partialTail, carry);
 
-        // Step 4: Add partial product to running total
-        if (*headR == NULL) {
-            // If result empty, use partial product directly
-            *headR = pH;
-            *tailR = pT;
-        } else {
-            addition(headR, tailR, &pH, &pT, NULL, NULL);
+        // Add zeroPadding zeros at the end of the partial product
+        for (int i = 0; i < zeroPadding; i++)
+            insert_last(&partialHead, &partialTail, 0);
 
-            // Free partial product as it’s no longer needed
-            while (pH) {
-                Dlist *tmp = pH;
-                pH = pH->next;
-                free(tmp);
-            }
+        // Prepare new list variables to store sum of result and partial product
+        Dlist *sumHead = NULL, *sumTail = NULL;
+
+        // Sum the current result list and the new partial product list
+        addition(headR, tailR, &partialHead, &partialTail, &sumHead, &sumTail);
+
+        // Free the old result list nodes
+        while (*headR)
+        {
+            Dlist *temp = *headR;
+            *headR = (*headR)->next;
+            free(temp);
         }
 
-        // Step 5: Shift will be bigger for next multiplier digit
-        shift++;
-        ptr2 = ptr2->prev;
+        // Update result list head and tail with sum list
+        *headR = sumHead;
+        *tailR = sumTail;
+
+        // Move to next digit of second number to multiply, increment zeroPadding for place value
+        digitNode2 = digitNode2->prev;
+        zeroPadding++;
     }
 
-    // Step 6: Print result
-    print_list(*headR);
+    // Remove leading zeros from the final result list if any (except keep one digit if the number is 0)
+    while (*headR && (*headR)->data == 0 && (*headR)->next != NULL)
+    {
+        Dlist *temp = *headR;
+        *headR = (*headR)->next;
+        (*headR)->prev = NULL;
+        free(temp);
+    }
+
     return SUCCESS;
 }
