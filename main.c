@@ -1,3 +1,4 @@
+
 #include "apc.h"
 
 
@@ -30,13 +31,13 @@ char Operator(char *argv[])
 		printf("Enter only single operant \n");
 		return '\0';
 	}
-	if((argv[2][0]=='+' || argv[2][0]=='-' || argv[2][0]=='*' || argv[2][0]=='/'))
+	if((argv[2][0]=='+' || argv[2][0]=='-' || argv[2][0]=='x' || argv[2][0]=='/' || argv[2][0]=='%'))
 	{
              return argv[2][0];
 	}
 	else
 	{
-              printf("Enter only the operator (+,-,*,/)\n");
+              printf("Enter only the operator (+,-,*,/,%%)\n");
 			  return '\0';
 	}
 }
@@ -68,6 +69,8 @@ int main(int argc,char *argv[])
 			case '+':
 				if((addition(&head1,&tail1,&head2,&tail2,&headR,&tailR))==SUCCESS)
 				{
+					printf("%s + %s = ", argv[1], argv[3]);
+					print_list(headR);
 					printf("Addition SuccessFully Done\n");
 				}
 				else
@@ -77,10 +80,10 @@ int main(int argc,char *argv[])
 				break;
 
 			case '-':	
-            
 				if (subtraction(&head1, &tail1, &head2, &tail2, &headR,&tailR) == SUCCESS)
 				{
-                    printf("Subtraction Successfully Done\n");	
+                      print_list(headR);
+                      printf("Subtraction Successfully Done\n");	
 				}
 				else
 				{
@@ -88,11 +91,12 @@ int main(int argc,char *argv[])
 				}
 				break;
 
-			case '*':	
-            
+			case 'x':	
 				if(multiplication(&head1,&tail1,&head2,&tail2,&headR,&tailR) == SUCCESS)
 			    {
-				    printf("Multiplication successfully done\n");
+				    printf("%s x %s = ", argv[1], argv[3]);
+					print_list(headR);
+					 printf("Multiplication successfully done\n");
 			    }
 			    else
 			    {
@@ -101,21 +105,22 @@ int main(int argc,char *argv[])
 				break;
 
 			case '/':	
-			{}
-            
-				// if (division(head1, tail1, head2, tail2, &headR) == SUCCESS)
-				// {
-                //     printf("Division Successfully Done\n");
-				// }
-                // else
-				// {
-                //     printf("Division Failed\n");
-				// }
-				// break;
+			
+				if (division(&head1,&tail1,&head2,&tail2,&headR,&tailR) == SUCCESS)
+				{
+                    printf("%s / %s = ", argv[1], argv[3]);
+                    print_list(headR);
+                    printf("Division Successfully Done\n");
+
+				}
+                else
+				{
+                    printf("Division Failed\n");
+				}
+				break;
 
 			default:
 				printf("Invalid Input:-( Try again...\n");
-				break;
 		}  
 	 }
 	 else
